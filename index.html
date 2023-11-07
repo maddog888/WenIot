@@ -1,0 +1,210 @@
+<!Doctype html>
+<html lang="zh">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0">
+    <title>Iot 中控</title>
+    <link href="./css/bootstrap.css?v=16" rel="stylesheet">
+    <link href="./css/iot.css?v=111129" rel="stylesheet">
+</head>
+<body>
+    <main class="container py-3">
+        <!--  默认头部区域  -->
+        <header>
+            <div class="d-flex flex-column flex-md-row align-items-center pb-3 mb-4 border-bottom wcard shadow-sm">
+                <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" fill="currentColor" class="bi bi-intersect" viewBox="0 0 16 16">
+                    <path d="M0 2a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v2h2a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-2H2a2 2 0 0 1-2-2V2zm5 10v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1V6a1 1 0 0 0-1-1h-2v5a2 2 0 0 1-2 2H5zm6-8V2a1 1 0 0 0-1-1H2a1 1 0 0 0-1 1v8a1 1 0 0 0 1 1h2V6a2 2 0 0 1 2-2h5z"/>
+                    </svg>
+                    <span class="fs-4" style="padding-left: 15px;">Wen Iot</span>
+                </a>
+
+                <nav class="d-inline-flex mt-2 mt-md-0 ms-md-auto">
+                    <a class="me-3 py-2 text-dark text-decoration-none" href="#" id="webState">服务端：<span class="badge text-bg-warning">连接中</span></a>
+                    <a class="me-3 py-2 text-dark text-decoration-none" href="#">|</a>
+                    <a class="me-3 py-2 text-dark text-decoration-none" href="#" id="iotState">设备端：<span class="badge text-bg-warning">通信中</span></a>
+                </nav>
+
+                <nav class="d-inline-flex mt-2 mt-md-0 ms-md-auto">
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-secondary">设备时间</button>
+                        <button type="button" class="btn btn-outline-dark" id="iotTime">获取中</button>
+                        <a class="btn btn-dark" id="restart">重启设备</a>
+                    </div>
+                </nav>
+
+                <nav class="d-inline-flex mt-2 mt-md-0 ms-md-auto">
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-danger">运行</button>
+                        <button type="button" class="btn btn-outline-danger" id="runTime">获取中</button>
+                    </div>
+                    &nbsp;&nbsp;&nbsp;
+                    <div class="btn-group btn-group-sm">
+                        <button type="button" class="btn btn-warning">内存:KB</button>
+                        <button type="button" class="btn btn-outline-warning" id="runTime">
+                            
+                            <a id="heapSize"></a>/<a id="freeHeap"></a>
+                        </button>
+                    </div>
+                </nav>
+            </div>
+        </header>
+        <!--  默认头部区域  -->
+
+        <!--  在以下区域添加新的模块即可  -->
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-5 g-2">
+
+            <div class="col">
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-header">插座开关</div>
+                    <div class="card-body text-primary">
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="ona" style="width: 2.8rem;height: 1.5rem;">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card mb-3 shadow-sm">
+                    <div class="card-header">
+                        插座运行
+                    </div>
+                    <ul class="list-group list-group-flush">
+                        <li class="list-group-item" id="onaTime">0</li>
+                    </ul>
+                </div>
+            </div>
+
+        </div>
+
+        <!--  在以上区域添加新的模块即可  -->
+
+        <!--定时和倒计时计划区域-->
+        <div class="row row-cols-1 row-cols-sm-1 row-cols-md-2 g-2">
+            <div class="col">
+                <div class="card border-w mb-3 shadow-sm">
+                    <div class="card-header">定时计划</div>
+                    <div class="card-body text-primary">
+                        <ul class="list-group list-group-flush" id="taskList">
+                        </ul>
+                        <br>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-success" type="button" data-bs-toggle="modal" data-bs-target="#addTaskModal">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-alarm-fill" viewBox="0 0 16 16">
+                                    <path d="M6 .5a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 0 1H9v1.07a7.001 7.001 0 0 1 3.274 12.474l.601.602a.5.5 0 0 1-.707.708l-.746-.746A6.97 6.97 0 0 1 8 16a6.97 6.97 0 0 1-3.422-.892l-.746.746a.5.5 0 0 1-.707-.708l.602-.602A7.001 7.001 0 0 1 7 2.07V1h-.5A.5.5 0 0 1 6 .5zm2.5 5a.5.5 0 0 0-1 0v3.362l-1.429 2.38a.5.5 0 1 0 .858.515l1.5-2.5A.5.5 0 0 0 8.5 9V5.5zM.86 5.387A2.5 2.5 0 1 1 4.387 1.86 8.035 8.035 0 0 0 .86 5.387zM11.613 1.86a2.5 2.5 0 1 1 3.527 3.527 8.035 8.035 0 0 0-3.527-3.527z"/>
+                                </svg>
+                                &nbsp;添加定时计划
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col">
+                <div class="card border-primary mb-3 shadow-sm">
+                    <div class="card-header">倒计时任务</div>
+                    <div class="card-body text-primary">
+                        <ul class="list-group list-group-flush" id="taskDList">
+                        </ul>
+                        <br>
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary" type="button" data-bs-toggle="modal" data-bs-target="#addDTaskModal">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-clock-fill" viewBox="0 0 16 16">
+                                    <path d="M16 8A8 8 0 1 1 0 8a8 8 0 0 1 16 0zM8 3.5a.5.5 0 0 0-1 0V9a.5.5 0 0 0 .252.434l3.5 2a.5.5 0 0 0 .496-.868L8 8.71V3.5z"/>
+                                </svg>
+                                &nbsp;添加倒计时任务
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 添加定时计划模态框 -->
+        <div class="modal fade" id="addTaskModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">添加定时计划</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="time" class="form-control" id="taskTime">
+                        <br>
+                        <select class="form-select form-select-sm" id="taskid">
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" id="addTask">添加</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!-- 添加倒计时计划模态框 -->
+        <div class="modal fade" id="addDTaskModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">添加倒计时任务</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+
+                        <div class="input-group mb-3">
+                            <select class="form-select form-select-sm" id="Dtaskmin">
+                                <option value="0">0分钟</option>
+                                <option value="10">10分钟</option>
+                                <option value="20">20分钟</option>
+                                <option value="30">30分钟</option>
+                                <option value="40">40分钟</option>
+                                <option value="50">50分钟</option>
+                                <option value="60">60分钟</option>
+                                <option value="120">2小时</option>
+                                <option value="180">3小时</option>
+                                <option value="300">5小时</option>
+                                <option value="1200">20小时</option>
+                                <option value="1440">1天</option>
+                                <option value="2880">2天</option>
+                                <option value="4320">3天</option>
+                            </select>
+                            <span class="input-group-text">：</span>
+                            <input type="number" class="form-control" id="Dtasks">
+                            <span class="input-group-text" id="basic-addon2">秒</span>
+                        </div>
+                        <select class="form-select form-select-sm" id="Dtaskid">
+                        </select>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">关闭</button>
+                        <button type="button" class="btn btn-primary" id="addDTask">添加</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <!--定时和倒计时计划区域-->
+
+        <!--调试区域-->
+        <!--
+        <div class="mb-3">
+            <label class="form-label" for="chat">消息日志：<button type="button" class="btn btn-link" onclick="javsscript:$('#chat').text('');">清空日志</button></label>
+            <textarea class="form-control" id="chat" rows="3"></textarea>
+        </div>
+
+        <div class="input-group mb-3">
+            <input type="text" class="form-control" placeholder="发送消息到设备" id="message">
+            <button class="btn btn-primary" type="button" id="send">发送</button>
+        </div>
+        -->
+        <!--调试区域-->
+    </main>
+    <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <!-- 引入 Bootstrap JS 文件 -->
+    <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/js/bootstrap.min.js"></script>
+    <script>
+        //配置连接的信息
+        const socket = new WebSocket('ws://broker.edlm.cn:8083/?s=a1&ss=b1&cid=wen1');
+    </script>
+    <script src="./js/wen.js?v=132"></script>
+</body>
+</html>
