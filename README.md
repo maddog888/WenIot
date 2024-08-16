@@ -2,7 +2,7 @@
 这个项目采用的是通用思路，已经实现了定时和倒计时功能，只需要新建功能和名称添加到对应的地方即可帮助你快速搭建完全属于自己的物联网，包含了服务端，后台端以及设备端代码。
 
 # 用户控制端
-使用的是Web实现，可以直接在浏览器运行，用户控制端演示：https://maddog888.github.io/WenIot/。
+使用的是Web实现，可以直接在浏览器运行，用户控制端演示：[https://maddog888.github.io/WenIot/](https://maddog888.github.io/WenIot/)
 
 # MQTT 服务端
 使用的是 Node.js 环境实现，本质是Javascript，直接挂起即可。
