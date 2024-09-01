@@ -87,7 +87,7 @@ void runTask(int Tid){
 }
 String mqtt_title = "wificz"; //定义项目名称-用于配置客户端ID-主题-等信息
 // 以上代码不固定，但事件和变量名基本固定
-#include "wen_iot.h"; //导入weniot-更多配置可看代码文件
+#include "wen_iot.h" //导入weniot-更多配置可看代码文件
 
 
 
