@@ -56,6 +56,8 @@ struct CountdownTimer {
 };
 // 创建定时队列
 CountdownTimer timers[TimerMax];
+// 定义跳过定时任务的时间段
+unsigned long jumpTime = 0;
 // 创建倒计时队列
 CountdownTimer Dtimers[DTimerMax]; 
 //创建任务列表
@@ -110,38 +112,38 @@ bool startDTimer(unsigned long time, int runInt) {
 
 //当控制端ping请求响应的数据
 void sendUpdate(){
-  // 创建一个 JSON 对象
-  DynamicJsonDocument doc(1024);
-  doc = returnData(); //  先把用户需要的数据拿到
-  // 向 JSON 对象添加数据
-  doc["iotTime"] = getTime(nowTime); //默认
-  doc["runTime"] = getTime(millis()); //默认
-  //定时任务
-  for (int i = 0; i < TimerMax; i++) {
-    if(timers[i].time>0){
-      doc["taskLists"][i][0] = String(i);
-      doc["taskLists"][i][1] = String(timers[i].time);
-      doc["taskLists"][i][2] = tList[timers[i].runInt];
-    }
-  }
-  //倒计时任务
-  for (int i = 0; i < DTimerMax; i++) {
-    if(Dtimers[i].time>0){
-      doc["taskDLists"][i][0] = String(i);
-      doc["taskDLists"][i][1] = String((Dtimers[i].time - millis()));
-      doc["taskDLists"][i][2] = tList[Dtimers[i].runInt];
-    }
-  }
-  //任务列表
-  for (int i = 0; i < Tasks; i++) {
-    doc["TasksList"][i][0] = String(i);
-    doc["TasksList"][i][1] = tList[i];
-  }
-  // 将 JSON 对象转换为 JSON 字符串
-  String jsonString;
-  serializeJson(doc, jsonString);
   //只在联网的时候发送数据-避免断网阻塞
   if (mqttClient.connected()){
+    // 创建一个 JSON 对象
+    DynamicJsonDocument doc(1024);
+    doc = returnData(); //  先把用户需要的数据拿到
+    // 向 JSON 对象添加数据
+    doc["iotTime"] = getTime(nowTime); //默认
+    doc["runTime"] = getTime(millis()); //默认
+    //定时任务
+    for (int i = 0; i < TimerMax; i++) {
+      if(timers[i].time>0){
+        doc["taskLists"][i][0] = String(i);
+        doc["taskLists"][i][1] = String(timers[i].time);
+        doc["taskLists"][i][2] = tList[timers[i].runInt];
+      }
+    }
+    //倒计时任务
+    for (int i = 0; i < DTimerMax; i++) {
+      if(Dtimers[i].time>0){
+        doc["taskDLists"][i][0] = String(i);
+        doc["taskDLists"][i][1] = String((Dtimers[i].time - millis()));
+        doc["taskDLists"][i][2] = tList[Dtimers[i].runInt];
+      }
+    }
+    //任务列表
+    for (int i = 0; i < Tasks; i++) {
+      doc["TasksList"][i][0] = String(i);
+      doc["TasksList"][i][1] = tList[i];
+    }
+    // 将 JSON 对象转换为 JSON 字符串
+    String jsonString;
+    serializeJson(doc, jsonString);
     mqttClient.publish(mqtt_topic_pub.c_str(), jsonString.c_str());
   }
 }
@@ -244,6 +246,14 @@ void wen_iot_init(){
   }
 }
 
+// 毫秒转时分
+String getHsTime(unsigned long elapsedTime){
+  unsigned long minutes = (elapsedTime / 60000) % 60;
+  unsigned long hours = (elapsedTime / 3600000);
+
+  return String(hours) + String(minutes);
+}
+
 // 任务事件
 void wen_iot_run(){
   ap_serve();
@@ -272,12 +282,12 @@ void wen_iot_run(){
   }
 
   // 自动连接MQTT服务器
-  if (!mqttClient.connected())  // 如果未连接
+  if (WiFi.status() == WL_CONNECTED && !mqttClient.connected() )  // 如果联网但未连接
   {
     if (currentMillis - previousConnectMillis > intervalConnectMillis) {
       previousConnectMillis = currentMillis;
-      mqtt_client_id += String(WiFi.macAddress());     // 每个客户端需要有唯一的ID，不然上线时会把其他相同ID的客户端踢下线
-      if (mqttClient.connect(mqtt_client_id.c_str()))  // 尝试连接服务器
+      String new_mqtt_client_id = mqtt_client_id + String(WiFi.macAddress());     // 每个客户端需要有唯一的ID，不然上线时会把其他相同ID的客户端踢下线
+      if (mqttClient.connect(new_mqtt_client_id.c_str()))  // 尝试连接服务器
       // if (mqttClient.connect(mqtt_client_id.c_str(), mqtt_username, mqtt_password))
       {
         sendUpdate();
@@ -286,21 +296,42 @@ void wen_iot_run(){
     }
   }
   //定时任务计划
-  for (int i = 0; i < TimerMax; i++) {
-    //寻找到当前有任务的列
-    if (timers[i].time>0) {
-      if(nowTime==timers[i].time){
-        runTask(timers[i].runInt);  //执行任务
-        sendUpdate(); //更新状态
-        delay(1000);  //避免重复执行
+  // 因为执行过程的各种延迟无法使用秒来定时，否则一旦被延迟略过就无法正常执行了
+  // 这个jumpTime，因为定时任务是根据时分来执行
+  // 那么一分钟里面可以重复执行约60次
+  // 所以如果我们在指定分钟内把这一分钟的任务都执行后
+  // 就把jumpTime设置为当前时间+1分钟
+  // 一分钟之后，再把jumpTime时间设置为0，继续判断即可
+  if(jumpTime==0){
+    for (int i = 0; i < TimerMax; i++) {
+      //寻找到当前有任务的列
+      if (timers[i].time>0) {
+        // 转换为时分再判断
+        if(getHsTime(nowTime)==getHsTime(timers[i].time)){
+          runTask(timers[i].runInt);  //执行任务
+          if(jumpTime==0){
+            // 如果此次循环有执行到任务，那么就更新jumpTime
+            jumpTime = nowTime + 60000;
+          }
+          sendUpdate(); //更新状态
+          delay(1000);  //避免重复执行
+        }
       }
     }
+  }else{
+    // 如果不是0则判断当前时间是否已经超过或者等于，则设置为0
+    if(nowTime>=jumpTime){
+      // 如果此次循环有执行到任务，那么就更新jumpTime
+      jumpTime = 0;
+      // 更新为0那么下次就会继续跑定时任务了
+    }
   }
+  
   //倒计时任务
   for (int i = 0; i < DTimerMax; i++) {
     //寻找到当前有任务的列
     if (Dtimers[i].time>0) {
-      if(currentMillis==Dtimers[i].time){
+      if(currentMillis>=Dtimers[i].time){
         runTask(Dtimers[i].runInt);  //执行任务
         Dtimers[i].time = 0;  //关闭定时任务
         sendUpdate(); //更新状态
