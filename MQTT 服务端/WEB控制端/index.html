@@ -82,6 +82,9 @@
                 </div>
             </div>
 
+
+
+           
         </div>
 
         <!--  在以上区域添加新的模块即可  -->
@@ -206,24 +209,14 @@
     <script src="https://cdn.bootcdn.net/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
     <!-- 引入 Bootstrap JS 文件 -->
     <script src="https://cdn.bootcdn.net/ajax/libs/twitter-bootstrap/5.3.1/js/bootstrap.min.js"></script>
-    <!-- 导入mqtt库 -->
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
     <script>
-        // 是否打开SSL安全连接
-        const ssl = true;
-        // 配置MQTT服务器
-        const server = "broker.emqx.io";
-        // 配置通信群组
-        const mqtt_title = 'wificz';
-        var client;  //创建客户端
-        // 判断是否需要使用SSL
-        if(ssl){
-            // 配置 MQTT 客户端 SSL版本
-            client = mqtt.connect('wss://'+ server +':8084/mqtt');
-        }else{
-            client = mqtt.connect('ws://'+ server +':8083/mqtt');
-        }
+        const mqtt_title = "wificz";    //定义项目名称-与开发板名称同步
+        const mqtt_client_c = mqtt_title + "_weniot_client"; //客户端ID
+        const mqtt_topic_pub = mqtt_title + "_weniot_pub"; //接收主题
+        const mqtt_topic_sub = mqtt_title + "_weniot_sub"; //发送主题
+        //配置连接的信息 
+        const socket = new WebSocket('ws://127.0.0.1:8083/?s='+mqtt_topic_pub+'&ss='+mqtt_topic_sub+'&cid='+mqtt_client_c);
     </script>
-    <script src="./js/wen.js?v=5"></script>
+    <script src="./js/wen.js?v=1"></script>
 </body>
 </html>

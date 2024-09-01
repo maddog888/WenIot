@@ -6,49 +6,39 @@ const sendButton = $('#send');  //发送按钮
 let pingTimer; // 定时器用于发送 Ping 消息
 let pongReceived = true; // 标记是否收到 Pong 响应
 
-// 配置群组信息
-let topic_c = mqtt_title + "_weniot_pub"; //接收客户端群组
-let topic_s = mqtt_title + "_weniot_sub";  //发送服务端群组
-
 $(document).ready(function() {
-    // 当连接建立触发
-    client.on('connect', () => {
-        // 
-        console.log('连接成功');
-        // 订阅对应no群组
-        client.subscribe(topic_c, (err) => {
-            if (!err) {
-                console.log('订阅'+topic_c+'群组成功，等待响应。');
-            }
-        });
+    // 当连接建立时触发
+    socket.addEventListener('open', (event) => {
         $('#webState').html('服务端：<span class="badge text-bg-success">在线</span>');
         sendPing();
         // 定时发送 Ping 消息
         pingTimer = setInterval(sendPing, 2000); // 10秒发送一次 Ping
     });
 
-    // 收到消息时的回调函数
-    client.on('message', (topic, message) => {
-        displayMessage(message.toString());
+    // 当接收到消息时触发
+    socket.addEventListener('message', (event) => {
+        const receivedMessage = event.data;
+        displayMessage(receivedMessage);
         // 收到响应
         pongReceived = true;
     });
 
-    // 连接断开时的回调函数
-    client.on('close', () => {
+    // 当连接关闭时触发
+    socket.addEventListener('close', (event) => {
         closeWeb('服务端：<span class="badge text-bg-secondary">离线</span>');
     });
 
-    // 发生错误时的回调函数
-    client.on('error', (error) => {
+    // 当发生错误时触发
+    socket.addEventListener('error', (event) => {
         closeWeb('服务端：<span class="badge text-bg-info">连接中断</span>');
     });
 
     // 发送消息
     sendButton.click(function() {
-        client.publish(topic_s, messageInput.val());
+        socket.send(messageInput.val());
         displayMessage(`服务端: ${messageInput.val()}`);
     });
+
 
     /*** 
      * 
@@ -120,7 +110,7 @@ function sendMsg(id,state){
     jsonData[id] = state;
     // 将 JSON 对象转换为 JSON 格式的字符串
     var jsonString = JSON.stringify(jsonData);
-    client.publish(topic_s, jsonString);
+    socket.send(jsonString);
     // displayMessage(`服务端：${jsonString}`);
 }
 
@@ -150,6 +140,7 @@ function displayMessage(message) {
 
                     var minutes = Math.floor((taskTime / 60000) % 60);
                     var hours = Math.floor((taskTime / 3600000));
+
 
                     // 创建列表项
                     var listItem = '<li class="list-group-item d-flex justify-content-between align-items-center">' + hours + "时" + minutes + "分" + taskName + '<span onclick="javascript:sendMsg(\'delTask\',' + taskId +');" class="badge bg-danger">×</span></li>';
@@ -231,7 +222,7 @@ function displayMessage(message) {
 function sendPing() {
     if (pongReceived) {
         // 发送 Ping 消息
-        client.publish(topic_s, 'ping');
+        socket.send('ping');
         pongReceived = false;
     } else {
         // 如果在上一次 Ping 后没有收到 Pong
