@@ -16,8 +16,8 @@
 const char *mqtt_broker_addr = "broker.emqx.io";  // 服务器地址
 const uint16_t mqtt_broker_port = 1883;          // 服务端口号
 
-const char *mqtt_username = "********";  // 账号（非必须）
-const char *mqtt_password = "********";  // 密码（非必须）
+// const char *mqtt_username = "********";  // 账号（非必须）
+// const char *mqtt_password = "********";  // 密码（非必须）
 
 const uint16_t mqtt_client_buff_size = 4096;  // 客户端缓存大小（非必须）
 String mqtt_client_id = mqtt_title + "_weniot_client";       // 客户端ID
@@ -140,8 +140,10 @@ void sendUpdate(){
   // 将 JSON 对象转换为 JSON 字符串
   String jsonString;
   serializeJson(doc, jsonString);
-  //发送数据
-  mqttClient.publish(mqtt_topic_pub.c_str(), jsonString.c_str());
+  //只在联网的时候发送数据-避免断网阻塞
+  if (mqttClient.connected()){
+    mqttClient.publish(mqtt_topic_pub.c_str(), jsonString.c_str());
+  }
 }
 
 

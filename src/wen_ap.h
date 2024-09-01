@@ -135,7 +135,8 @@ void ap_init(){
   preferences.end();
   if(ssid!="null"){
     WiFi.begin(ssid, pwd);
-    for(size_t i = 0; i < 30; i++){
+    // 大概连接1分钟，避免停电路由器开机慢而导致无法连接的问题
+    for(size_t i = 0; i < 120; i++){
       if(WiFi.status() == WL_CONNECTED){
         Serial.println("历史信息联网成功");
         apstate = false;
