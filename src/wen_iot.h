@@ -314,7 +314,8 @@ void wen_iot_run(){
             jumpTime = nowTime + 60000;
           }
           sendUpdate(); //更新状态
-          delay(1000);  //避免重复执行
+          delay(100);  //避免重复执行
+          yield();  // 喂狗
         }
       }
     }
@@ -335,7 +336,8 @@ void wen_iot_run(){
         runTask(Dtimers[i].runInt);  //执行任务
         Dtimers[i].time = 0;  //关闭定时任务
         sendUpdate(); //更新状态
-        delay(1000);  //避免重复执行
+        delay(100);  //避免重复执行
+        yield();  // 喂狗
       }
     }
   }
