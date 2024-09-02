@@ -67,7 +67,7 @@ void www_save_wifi(){
   for(size_t i = 0; i < 30; i++){
     if(WiFi.status() == WL_CONNECTED){
       WiFi.softAPdisconnect(true); // 关闭 AP
-      WiFi.autoReconnect(true); //显性开启自动重连，默认是开启的
+      WiFi.setAutoReconnect(true); //显性开启自动重连，默认是开启的
       dnsServer.stop(); // 关闭 DNS
       web.send(200, "text/plain", "{\"state\": 1}");
       web.close(); // 关闭 web 
@@ -141,7 +141,7 @@ void ap_init(){
     for(size_t i = 0; i < 120; i++){
       if(WiFi.status() == WL_CONNECTED){
         Serial.println("历史信息联网成功");
-        WiFi.autoReconnect(true); //显性开启自动重连，默认是开启的
+        WiFi.setAutoReconnect(true); //显性开启自动重连，默认是开启的
         apstate = false;
         return;
       }else{
