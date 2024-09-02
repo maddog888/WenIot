@@ -16,7 +16,7 @@ Preferences preferences;
 ESP8266WebServer web(80);
 DNSServer dnsServer;
 
-#define AP_SSID "WenPeng"  //名称
+#define AP_SSID "WenIot"  //名称
 #define AP_PASSWORD ""  //密码
 IPAddress IP(2,2,2,2);  //路由地址
 
@@ -76,6 +76,7 @@ void www_save_wifi(){
       preferences.putString("ssid", ssid);
       preferences.putString("pwd", pwd);
       preferences.end();
+      apstate = false;  //设置AP状态关闭
       digitalWrite(ledPin, HIGH); //关闭LED
       return;
     }else{
