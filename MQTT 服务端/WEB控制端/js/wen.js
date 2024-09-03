@@ -1,4 +1,6 @@
 /* 2023年11月07日16:06:34 MadDog-Wen */
+// 设定动态面板ID
+const pageContent = document.getElementById('pageContent');
 const chat = $('#chat');    //消息日志
 const messageInput = $('#message'); //发送消息框
 const sendButton = $('#send');  //发送按钮
@@ -6,7 +8,48 @@ const sendButton = $('#send');  //发送按钮
 let pingTimer; // 定时器用于发送 Ping 消息
 let pongReceived = true; // 标记是否收到 Pong 响应
 
+/* 
+这个函数是面板动态生成模块的关键
+参数介绍：
+title： 是该模块显示的标题
+id   ： 是该模块的id，与开发板中设定变量名同步
+icon ： 是该模块显示的图标 可空
+type :  是模块类型0是展示，1是开关 默认0,改为2则自定义 可空
+whtml： 是自定义显示的内容，type记得改为2 可空
+ */
+const wInsert = (title, id, icon = "code-slash", type = 0, whtml = '') => {
+    if(type==1){
+        whtml = `<div class="form-check form-switch">
+                    <input class="form-check-input" type="checkbox" role="switch" id="${id}" style="width: 2.8rem;height: 1.5rem;">
+                </div>
+                <br>
+                <p class="card-text" style="margin-top: -18px;"><small class="text-muted"> ${title}</small></p>`;
+    }else if(type==0){
+        whtml = `<h3 class="card-title">${title}</h3>
+                <p class="card-text" style="margin-top: -6px;"><small class="text-muted" id="${id}"></small></p>`;
+    }
+    let newHtml = `<div class="col">
+                        <div class="card mb-3 shadow-sm">
+                            <div class="row g-0 justify-content-center align-items-center">
+                                <div class="col-4 col-md-5" style="text-align: center;">
+                                    <i class="bi bi-${icon}" style="font-size: 2rem;padding-left:10px;"></i>
+                                </div>
+                                <div class="col-8 col-md-7">
+                                    <div class="card-body">
+                                        ${whtml}
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>`;
+    pageContent.insertAdjacentHTML('beforeend', newHtml);
+};
+
 $(document).ready(function() {
+    // 遍历数组并生成生成面板
+    wlists.forEach(wlist => {
+        wInsert(wlist.title, wlist.id, wlist.icon, wlist.type, wlist.whtml);
+    });
     // 当连接建立时触发
     socket.addEventListener('open', (event) => {
         $('#webState').html('服务端：<span class="badge text-bg-success">在线</span>');

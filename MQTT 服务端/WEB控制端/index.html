@@ -44,50 +44,8 @@
         </header>
         <!--  默认头部区域  -->
 
-        <!--  在以下区域添加新的模块即可  -->
-        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-5 g-2">
-
-            <div class="col">
-                <div class="card mb-3 shadow-sm">
-                    <div class="row g-0 justify-content-center align-items-center">
-                        <div class="col-4 col-md-5" style="text-align: center;">
-                            <i class="bi bi-plug" style="font-size: 2rem;padding-left:10px;"></i>
-                        </div>
-                        <div class="col-8 col-md-7">
-                            <div class="card-body">
-                                <div class="form-check form-switch">
-                                    <input class="form-check-input" type="checkbox" role="switch" id="ona" style="width: 2.8rem;height: 1.5rem;">
-                                </div>
-                                <br>
-                                <p class="card-text" style="margin-top: -18px;"><small class="text-muted">插座开关</small></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col">
-                <div class="card mb-3 shadow-sm">
-                    <div class="row g-0 justify-content-center align-items-center">
-                        <div class="col-4 col-md-5" style="text-align: center;">
-                            <i class="bi bi-watch" style="font-size: 2rem;padding-left:10px;"></i>
-                        </div>
-                        <div class="col-8 col-md-7">
-                            <div class="card-body">
-                                <h3 class="card-title">通电</h3>
-                                <p class="card-text" style="margin-top: -6px;"><small class="text-muted" id="onaTime"></small></p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-
-
-           
-        </div>
-
-        <!--  在以上区域添加新的模块即可  -->
+        <!--  面板区域-动态添加  -->
+        <div class="row row-cols-2 row-cols-sm-3 row-cols-md-3 row-cols-lg-5 g-2" id="pageContent"></div>
 
         <!--定时和倒计时计划区域-->
         <div class="row row-cols-1 row-cols-sm-1 row-cols-md-2 g-2">
@@ -216,7 +174,21 @@
         const mqtt_topic_sub = mqtt_title + "_weniot_sub"; //发送主题
         //配置连接的信息 
         const socket = new WebSocket('ws://127.0.0.1:8083/?s='+mqtt_topic_pub+'&ss='+mqtt_topic_sub+'&cid='+mqtt_client_c);
+        // 面板模块配置
+        // 图标库：https://icons.getbootstrap.cn/
+        /* 
+            参数介绍：
+            title： 是该模块显示的标题
+            id   ： 是该模块的id，与开发板中设定变量名同步
+            icon ： 是该模块显示的图标 可空
+            type :  是模块类型0是展示，1是开关 默认0,改为2则自定义 可空
+            whtml： 是自定义显示的内容，type记得改为2 可空
+        */
+        const wlists = [
+            { title: '插座开关', id: 'ona', icon: 'plug', type: 1 },
+            { title: '通电', id: 'onaTime', icon: 'watch', type: 0 },
+        ];
     </script>
-    <script src="./js/wen.js?v=1"></script>
+    <script src="./js/wen.js?v=2"></script>
 </body>
 </html>
