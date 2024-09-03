@@ -9,7 +9,7 @@ unsigned long onaRunMillis = 0;  // 毫秒时间记录
 void Uona(String value){
   //如果是请求打开
   if(value=="1"){
-    //因为使用的是继电器，默认状态0为打开，1为关闭，所以相反操作
+    //因为使用继电器接的是常开端口，所以0是通电
     digitalWrite(on_a, 0);   //为插座通电
     onaRunMillis = millis();  //记录插座运行时间
   }else{
@@ -44,7 +44,7 @@ DynamicJsonDocument returnData() {
   DynamicJsonDocument doc(1024);  //初始化
   // 在此编写doc[""] = "";即可
 
-  // 示例：如何存在时间，则取运行时间减去记录时间，就是打开的时间
+  // 示例：如果存在时间，则取运行时间减去记录时间，就是打开的时间
   if(onaRunMillis>0){
     doc["onaTime"] = getTime(millis() - onaRunMillis);
   }else{
